@@ -1,0 +1,166 @@
+---
+title: "Метод GET"
+author: "Roman"
+date: "9/14/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+Sys.setlocale(,"UK_ua")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Необхідні бібліотеки
+
+В R бібліотеки встановлюються командою `install.packages("package_name")`.
+Викликати бібліотеку можна функцією `library`. Аналоги - `require`, `package_name::function`.
+
+У цьому кейсі ми використаємо 3 бібліотеки (синонім - пакети):
+
+* httr - бібліотека для виклику методів роботи з методами http (GET, POST)
+* jsonlite - бібліотека для обробки json файлів
+* magrittr - бібліотека, яка підключає функцію `%>%`
+
+```{r cars}
+library(httr)
+library(jsonlite)
+library(magrittr)
+```
+
+## Робота зі Star Wars API
+
+Завдання: викачати базу сайту Зоряних війн.
+Метод роботи GET
+URL: http://swapi.co/api/people/
+Параметр: search
+
+Два способи зробити запит:
+```{r pressure, echo=FALSE}
+vader <- GET("http://swapi.co/api/people/?search=vader")
+
+vader2 <- GET("http://swapi.co/api/people/", query = list(search = "vader"))
+```
+
+Подивимось на структуру отриманого файлу:
+
+```{r}
+str(vader)
+```
+
+А тепер поглянемо на контент:
+
+```{r}
+vader$content
+```
+Навряд чи тут можна щось проаналізувати.
+Нічого страшного - це формат даних raw.
+
+Вікіпедія дуже зрозуміло його хараткеризує:
+```RAW (англ. raw — сирий) — формат даних, що містить необроблені (або мінімально оброблені) дані, що дозволяє уникнути втрат інформації, і не має чіткої специфікації. У таких файлах міститься повна інформація про збережений сигнал.
+Вихідні файли зображень (RAW) іноді називають цифровими негативами, вони виконують ту ж роль, що й негативи в плівковій фотографії: тобто, негатив не являє собою безпосередньо зображення, але має всю необхідну інформацію для створення зображення. Крім того, процес перетворення сирих файлів зображень в зрозумілому форматі іноді називають обробкою необробленого зображення, за аналогією з процесом проявлення плівки (використовуються для перетворення фотоплівки у видимі відбитки).```
+
+```{r}
+vader$status_code
+vader$headers$`content-type`
+names(vader)
+```
+
+Тепер настав час отримати дані у форматі, доступному для сприйняття людиною.
+```{r}
+text_content <- content(vader, as = "text", encoding = "UTF-8",)
+text_content
+```
+
+Два способи перетворення json файлу
+
+```{r}
+parsed_content <- content(vader, as = "parsed")
+names(parsed_content)
+parsed_content$count
+str(parsed_content$results)
+parsed_content$results[[1]]$name
+parsed_content$results[[1]]$terrain
+```
+
+
+```{r}
+json_content <- text_content %>% fromJSON
+json_content
+planetary_data <- json_content$results
+names(planetary_data)
+planetary_data$name
+planetary_data$terrain
+```
+
+```{r}
+json_parse <- function(req) {
+  text <- content(req, as = "text", encoding = "UTF-8")
+  if (identical(text, "")) warn("No output to parse.")
+  fromJSON(text)
+}
+```
+
+```{r}
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status()
+json_planets <- json_parse(planets)
+```
+
+
+```{r}
+names(json_planets)
+json_planets$count
+length(json_planets$results$name)
+json_planets$`next`
+```
+
+
+```{r}
+swapi_planets <- json_planets$results
+swapi_planets$name
+```
+
+
+```{r}
+next_page <- GET(json_planets$`next`) %>% stop_for_status()
+```
+
+
+```{r}
+parsed_next_page <- json_parse(next_page)
+parsed_next_page$results$name
+```
+
+```{r}
+planets <- GET("http://swapi.co/api/planets") %>% 
+  stop_for_status() %>% 
+  json_parse
+swapi_planets <- planets$results
+```
+
+
+```{r}
+next_page <- planets$`next`
+while(!is.null(next_page)) {
+  more_planets <- GET(next_page) %>% 
+    stop_for_status() %>% 
+    json_parse
+  swapi_planets <- rbind(swapi_planets, more_planets$results)
+  next_page <- more_planets$`next`
+}
+```
+
+
+```{r}
+length(swapi_planets$name)
+swapi_planets$name
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
