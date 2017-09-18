@@ -1,5 +1,5 @@
 ---
-title: "Web Mining"
+title: "Web Content Mining"
 output: github_document
 ---
 
@@ -7,4 +7,4 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
+Курс, присвячений отриманню структурованого контенту з веб-ресурсів для його подальшого аналізу
