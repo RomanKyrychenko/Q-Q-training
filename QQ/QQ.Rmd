@@ -8,14 +8,41 @@ runtime: shiny_prerendered
 ---
 
 ```{r setup, include=FALSE}
+Sys.setlocale(,"UK_ua")
 library(learnr)
 library(digest)
 library(httr)
 
 knitr::opts_chunk$set(echo = FALSE)
-#knitr::opts_chunk$set(error = TRUE)
-#tutorial_options(exercise.checker = checker)
-#tutorial_options(exercise.checker = checkthat::check_exercise)
+library(httr)
+library(jsonlite)
+library(magrittr)
+
+vader <- GET("http://swapi.co/api/people/?search=vader")
+
+vader2 <- GET("http://swapi.co/api/people/", query = list(search = "vader"))
+
+text_content <- content(vader, as = "text", encoding = "UTF-8")
+
+
+parsed_content <- content(vader, as = "parsed")
+
+json_content <- text_content %>% fromJSON
+
+vader_data <- json_content$results
+
+
+json_parse <- function(req) {
+  text <- content(req, as = "text", encoding = "UTF-8")
+  if (identical(text, "")) warn("Нема чого парсить")
+  fromJSON(text)
+}
+
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status() %>% json_parse()
+
+next_page <- GET(planets$`next`) %>% stop_for_status() %>% json_parse()
+
+
 public_key <- "066d7bf25bea689c7f5de80f9cd47c37"
 
 private_key <- "94f28c434337359647c3a0c965b0c945e71a723c"
@@ -25,6 +52,211 @@ ts=round(as.numeric(Sys.time())*1000)
 hash=digest(sprintf("%s%s%s",ts, private_key, public_key), algo="md5", FALSE)
 ```
 
+
+## Два підходи до web content mining
+
+### Робота з REST API (1 модуль)
+
+Перший підхід полягає в безпосередній взаємодії з базою веб-ресурсу через http-запити: 
+![](images/restapi_restapi.png)
+
+
+### Scraping (2 модуль)
+
+Другий підхід складніший - ми самі відтворюємо базу через трансльований веб-контент:
+![](images/Web-scraping-2.png)
+
+## Вступ до роботи з API
+
+Робота API, як і всього вебу базується на http.
+
+HTTP - протокол передачі гіпертексту. Це протокол для бездротових додатків для комунікації між розподіленими системами та є основою сучасної мережі. 
+
+HTTP дозволяє спілкуватися між різними хостами та клієнтами та підтримує суміш конфігурацій мережі.
+
+Для того, щоб зробити це можливим, він припускає дуже мало про конкретну систему і не підтримує стан між різними обмінами повідомлень.
+
+Це робить протокол HTTP незалежним. Зв'язок зазвичай проходить через TCP / IP, але можна використовувати будь-який надійний транспорт. Стандартний порт для TCP / IP - 80, але інші порти також можуть бути використані.
+
+Користувальницькі заголовки також можуть бути створені та надіслані клієнтом.
+
+Зв'язок між хостом і клієнтом відбувається через пару запитів / відповідей. Клієнт ініціює повідомлення про HTTP запит, який обслуговується через відповідне повідомлення HTTP. 
+
+![](images/http1-request-response.png)
+
+В основі веб-комунікацій належить повідомлення про запрошення, яке надсилається через уніфіковані локатори ресурсів (URL-адреси). URL-адреси мають просту структуру, яка складається з наступних компонентів:
+
+![](images/http1-url-structure.png)
+
+Протокол, як правило, http, але для безпечної комунікації він також може бути https. Стандартний порт складає 80, але його можна однозначно встановити, як це показано на наведеному вище зображенні. Шлях ресурсу - локальний шлях до ресурсу на сервері.
+
+### Основні типи  http-запитів
+
+* **GET:** завантажте існуючий ресурс. URL містить всю необхідну інформацію, яку сервер повинен знайти та повернути ресурс.
+* **POST:** створити новий ресурс. Запити POST зазвичай містять корисну інформацію, яка вказує дані для нового ресурсу.
+* **PUT:** оновити існуючий ресурс. Корисна інформація може містити оновлені дані ресурсу.
+* **DELETE:** видалити існуючий ресурс.
+
+## Вступ до методу GET
+
+### Необхідні бібліотеки
+
+В R бібліотеки встановлюються командою `install.packages("package_name")`.
+Викликати бібліотеку можна функцією `library`. Аналоги - `require`, `package_name::function`.
+
+У цьому кейсі ми використаємо 3 бібліотеки (синонім - пакети):
+
+* httr - бібліотека для виклику методів роботи з методами http (GET, POST)
+* jsonlite - бібліотека для обробки json файлів
+* magrittr - бібліотека, яка підключає функцію `%>%`
+
+```{r libs, message=F, exercise=TRUE, exercise.eval=F}
+library(httr)
+library(jsonlite)
+library(magrittr)
+```
+
+### Робота зі Star Wars API
+
+Завдання: викачати базу сайту Зоряних війн.
+Метод роботи: GET
+URL: http://swapi.co/api/people/
+Параметр: search
+
+### Складаємо досьє на Дарта Вейдера
+
+Два способи зробити запит:
+```{r pressure, echo=FALSE, exercise=TRUE, exercise.eval=F}
+vader <- GET("http://swapi.co/api/people/?search=vader")
+
+vader2 <- GET("http://swapi.co/api/people/", query = list(search = "vader"))
+```
+
+Подивимось на структуру отриманого файлу:
+
+```{r v, exercise=TRUE, exercise.eval=F}
+str(vader)
+```
+
+А тепер поглянемо на контент:
+
+```{r c, exercise=TRUE, exercise.eval=F}
+vader$content
+```
+Навряд чи тут можна щось проаналізувати.
+Нічого страшного - це формат даних raw.
+
+Вікіпедія дуже зрозуміло його характеризує:
+
+> RAW (англ. raw — сирий) — формат даних, що містить необроблені (або мінімально оброблені) дані, що дозволяє уникнути втрат інформації, і не має чіткої специфікації. У таких файлах міститься повна інформація про збережений сигнал.
+Вихідні файли зображень (RAW) іноді називають цифровими негативами, вони виконують ту ж роль, що й негативи в плівковій фотографії: тобто, негатив не являє собою безпосередньо зображення, але має всю необхідну інформацію для створення зображення. Крім того, процес перетворення сирих файлів зображень в зрозумілому форматі іноді називають обробкою необробленого зображення, за аналогією з процесом проявлення плівки (використовуються для перетворення фотоплівки у видимі відбитки).
+
+```{r st, exercise=TRUE, exercise.eval=F}
+vader$status_code
+vader$headers$`content-type`
+names(vader)
+```
+
+Тепер настав час отримати дані у форматі, доступному для сприйняття людиною.
+```{r cnt, exercise=TRUE, exercise.eval=F}
+text_content <- content(vader, as = "text", encoding = "UTF-8")
+text_content
+```
+
+Два способи перетворення json файлу. 
+
+Через інструменти бібліотеки httr:
+
+```{r tr, exercise=TRUE, exercise.eval=F}
+parsed_content <- content(vader, as = "parsed")
+names(parsed_content)
+parsed_content$count
+str(parsed_content$results)
+parsed_content$results[[1]]$name
+parsed_content$results[[1]]$terrain
+```
+
+Та через бібліотеку jsonlite:
+
+```{r js, exercise=TRUE, exercise.eval=F}
+json_content <- text_content %>% fromJSON
+json_content
+vader_data <- json_content$results
+names(vader_data)
+vader_data$name
+vader_data$terrain
+```
+
+Запишем це все у вигляді функції:
+
+```{r pr, exercise=TRUE, exercise.eval=F}
+json_parse <- function(req) {
+  text <- content(req, as = "text", encoding = "UTF-8")
+  if (identical(text, "")) warn("Нема чого парсить")
+  fromJSON(text)
+}
+```
+
+#### Отримання даних про всі планети
+
+А тепер спробуємо отримати дані про всі планети із Всесвіту Зоряних війн.
+
+Запишем результат наших дій у короткій формі:
+```{r pla, exercise=TRUE, exercise.eval=F}
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status() %>% json_parse()
+```
+
+Подивимось на результати:
+
+```{r cou, exercise=TRUE, exercise.eval=F}
+names(planets)
+planets$count
+length(planets$results$name)
+```
+
+**Важливо:** у цього API є обмеження на вивід результатів. За один запит їх можна отримати не більше 10. Планет у Всесвіті Зоряних війн більше 10, отже, нам одного запиту не вистачить.
+
+Якщо дивитися на структуру отриманого списку, то можна побачити, що є гілка з назвою "next":
+```{r ne, exercise=TRUE, exercise.eval=F}
+planets$`next`
+```
+Це url наступної сторінки видачі за нашим запитом.
+
+Отримаємо окремий результат по ньому:
+
+```{r np, exercise=TRUE, exercise.eval=F}
+next_page <- GET(planets$`next`) %>% stop_for_status() %>% json_parse()
+```
+
+Маємо ще одну десятку планет:
+```{r pg, exercise=TRUE, exercise.eval=F}
+next_page$results$name
+```
+
+Отримати результат видачі всіх сторінок можна через цикл while
+
+```{r while, exercise=TRUE, exercise.eval=F}
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status() %>% json_parse()
+next_page <- planets$`next`
+planets <- planets$results
+
+while(!is.null(next_page)) {
+  more_planets <- GET(next_page) %>% stop_for_status() %>% json_parse()
+  planets <- rbind(planets, more_planets$results)
+  next_page <- more_planets$`next`
+}
+length(planets$name)
+planets$name
+head(planets)
+```
+
+Запишемо це все в таблицю Excel:
+```{r write,eval=F, exercise=TRUE}
+xlsx::write.xlsx(planets,"planets.xlsx")
+```
+
+Можемо собою гордитись :)
+
 ## Метод GET
 
 ### Marvel API
@@ -33,7 +265,7 @@ hash=digest(sprintf("%s%s%s",ts, private_key, public_key), algo="md5", FALSE)
 Дійзнатися, які особливості цього API і що ми можемо з нього отримати, можна за адресою developer.marvel.com.
 
 Найбільше нас цікавить авторизація в цьому API, без неї результат буде сумним (спробуємо отримати досьє на Спайдер-мена):
-```{r httr, exercise=TRUE, exercise.eval=TRUE}
+```{r httr, exercise=TRUE, exercise.eval=F}
 library(httr)
 
 GET(url = "https://gateway.marvel.com:443/v1/public/characters", 
@@ -52,7 +284,7 @@ private_key <- "94f28c434337359647c3a0c965b0c945e71a723c"
 ```
 
 Тайм-штамп - це конвертований у числовий формат системний час помножений на 1000:
-```{r ts-setup, exercise=F, exercise=TRUE, include=T}
+```{r ts-setup, exercise=TRUE, exercise=TRUE, include=T}
 ts=round(as.numeric(Sys.time())*1000)
 ```
 
@@ -78,7 +310,7 @@ spider_man$status_code
 Ура! У нас є досьє на спайдер-мена!
 
 Тепер спробуємо спростити процедуру пошуку досьє на героїв. Напишемо функцію:
-```{r func, exercise=TRUE, exercise.eval=TRUE, exercise.lines = 32}
+```{r func, exercise=TRUE, exercise.eval=F, exercise.lines = 32}
 get_characters <- function(name,public_key="066d7bf25bea689c7f5de80f9cd47c37", private_key="94f28c434337359647c3a0c965b0c945e71a723c") {
   
   ts <- round(as.numeric(Sys.time())*1000) 
