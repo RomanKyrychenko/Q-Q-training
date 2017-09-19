@@ -77,6 +77,8 @@ library(magrittr)
 URL: http://swapi.co/api/people/
 Параметр: search
 
+### Складаємо досьє на Дарта Вейдера
+
 Два способи зробити запит:
 ```{r pressure, echo=FALSE}
 vader <- GET("http://swapi.co/api/people/?search=vader")
@@ -133,81 +135,82 @@ parsed_content$results[[1]]$terrain
 ```{r}
 json_content <- text_content %>% fromJSON
 json_content
-planetary_data <- json_content$results
-names(planetary_data)
-planetary_data$name
-planetary_data$terrain
+vader_data <- json_content$results
+names(vader_data)
+vader_data$name
+vader_data$terrain
 ```
+
+Запишем це все у вигляді функції:
 
 ```{r}
 json_parse <- function(req) {
   text <- content(req, as = "text", encoding = "UTF-8")
-  if (identical(text, "")) warn("No output to parse.")
+  if (identical(text, "")) warn("Нема чого парсить")
   fromJSON(text)
 }
 ```
 
+### Отримання даних про всі планети
+
+А тепер спробуємо отримати дані про всі планети із Всесвіту Зоряних війн.
+
+Запишем результат наших дій у короткій формі:
 ```{r}
-planets <- GET("http://swapi.co/api/planets") %>% stop_for_status()
-json_planets <- json_parse(planets)
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status() %>% json_parse()
 ```
 
+Подивимось на результати:
 
 ```{r}
-names(json_planets)
-json_planets$count
-length(json_planets$results$name)
-json_planets$`next`
+names(planets)
+planets$count
+length(planets$results$name)
 ```
 
+**Важливо:** у цього API є обмеження на вивід результатів. За один запит їх можна отримати не більше 10. Планет у Всесвіті Зоряних війн більше 10, отже, нам одного запиту не вистачить.
+
+Якщо дивитися на структуру отриманого списку, то можна побачити, що є гілка з назвою "next":
+```{r}
+planets$`next`
+```
+Це url наступної сторінки видачі за нашим запитом.
+
+Отримаємо окремий результат по ньому:
 
 ```{r}
-swapi_planets <- json_planets$results
-swapi_planets$name
+next_page <- GET(planets$`next`) %>% stop_for_status() %>% json_parse()
 ```
 
-
+Маємо ще одну десятку планет:
 ```{r}
-next_page <- GET(json_planets$`next`) %>% stop_for_status()
+next_page$results$name
 ```
 
+Отримати результат видачі всіх сторінок можна через цикл while
 
 ```{r}
-parsed_next_page <- json_parse(next_page)
-parsed_next_page$results$name
-```
-
-```{r}
-planets <- GET("http://swapi.co/api/planets") %>% 
-  stop_for_status() %>% 
-  json_parse
-swapi_planets <- planets$results
-```
-
-
-```{r}
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status() %>% json_parse()
 next_page <- planets$`next`
+planets <- planets$results
+
 while(!is.null(next_page)) {
-  more_planets <- GET(next_page) %>% 
-    stop_for_status() %>% 
-    json_parse
-  swapi_planets <- rbind(swapi_planets, more_planets$results)
+  more_planets <- GET(next_page) %>% stop_for_status() %>% json_parse()
+  planets <- rbind(planets, more_planets$results)
   next_page <- more_planets$`next`
 }
 ```
 
-
+Всі планети у нас в таблиці:
 ```{r}
-length(swapi_planets$name)
-swapi_planets$name
+length(planets$name)
+planets$name
+head(planets)
 ```
 
-
-```{r}
-
+Запишемо це все в таблицю Excel:
+```{r,eval=F}
+xlsx::write.xlsx(planets,"planets.xlsx")
 ```
 
-
-```{r}
-
-```
+Можемо собою гордитись :)

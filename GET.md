@@ -15,6 +15,8 @@
 Вступ до роботи з API
 ---------------------
 
+Робота API, як і всього вебу базується на http.
+
 HTTP - протокол передачі гіпертексту. Це протокол для бездротових додатків для комунікації між розподіленими системами та є основою сучасної мережі.
 
 HTTP дозволяє спілкуватися між різними хостами та клієнтами та підтримує суміш конфігурацій мережі.
@@ -29,7 +31,7 @@ HTTP дозволяє спілкуватися між різними хоста�
 
 ![](http1-request-response.png)
 
-В основі веб-комунікацій належить повідомлення про запрошення, яке надсилається через уніфіковані локатори ресурсів (URL-адреси). Я впевнений, що ви вже знайомі з URL-адресами, але для повноти я додам його тут. URL-адреси мають просту структуру, яка складається з наступних компонентів:
+В основі веб-комунікацій належить повідомлення про запрошення, яке надсилається через уніфіковані локатори ресурсів (URL-адреси). URL-адреси мають просту структуру, яка складається з наступних компонентів:
 
 ![](http1-url-structure.png)
 
@@ -75,6 +77,8 @@ library(magrittr)
 
 Завдання: викачати базу сайту Зоряних війн. Метод роботи: GET URL: <http://swapi.co/api/people/> Параметр: search
 
+### Складаємо досьє на Дарта Вейдера
+
 Два способи зробити запит:
 
 Подивимось на структуру отриманого файлу:
@@ -87,18 +91,18 @@ str(vader)
     ##  $ url        : chr "http://swapi.co/api/people/?search=vader"
     ##  $ status_code: int 200
     ##  $ headers    :List of 13
-    ##   ..$ date             : chr "Mon, 18 Sep 2017 12:05:16 GMT"
+    ##   ..$ date             : chr "Tue, 19 Sep 2017 12:07:34 GMT"
     ##   ..$ content-type     : chr "application/json"
     ##   ..$ transfer-encoding: chr "chunked"
     ##   ..$ connection       : chr "keep-alive"
-    ##   ..$ set-cookie       : chr "__cfduid=df4eefe59630e121773fcfe527cef49021505736312; expires=Tue, 18-Sep-18 12:05:12 GMT; path=/; domain=.swapi.co; HttpOnly"
-    ##   ..$ etag             : chr "W/\"aeb3c302f6866c5a0a548eaafa967d61\""
+    ##   ..$ set-cookie       : chr "__cfduid=dd87ec76270a40e3b11979905fccf7ed71505822854; expires=Wed, 19-Sep-18 12:07:34 GMT; path=/; domain=.swapi.co; HttpOnly"
     ##   ..$ allow            : chr "GET, HEAD, OPTIONS"
     ##   ..$ x-frame-options  : chr "SAMEORIGIN"
     ##   ..$ vary             : chr "Accept, Cookie"
+    ##   ..$ etag             : chr "W/\"aeb3c302f6866c5a0a548eaafa967d61\""
     ##   ..$ via              : chr "1.1 vegur"
     ##   ..$ server           : chr "cloudflare-nginx"
-    ##   ..$ cf-ray           : chr "3a042c0ee1a88406-KBP"
+    ##   ..$ cf-ray           : chr "3a0c6ce823e38243-KBP"
     ##   ..$ content-encoding : chr "gzip"
     ##   ..- attr(*, "class")= chr [1:2] "insensitive" "list"
     ##  $ all_headers:List of 1
@@ -106,18 +110,18 @@ str(vader)
     ##   .. ..$ status : int 200
     ##   .. ..$ version: chr "HTTP/1.1"
     ##   .. ..$ headers:List of 13
-    ##   .. .. ..$ date             : chr "Mon, 18 Sep 2017 12:05:16 GMT"
+    ##   .. .. ..$ date             : chr "Tue, 19 Sep 2017 12:07:34 GMT"
     ##   .. .. ..$ content-type     : chr "application/json"
     ##   .. .. ..$ transfer-encoding: chr "chunked"
     ##   .. .. ..$ connection       : chr "keep-alive"
-    ##   .. .. ..$ set-cookie       : chr "__cfduid=df4eefe59630e121773fcfe527cef49021505736312; expires=Tue, 18-Sep-18 12:05:12 GMT; path=/; domain=.swapi.co; HttpOnly"
-    ##   .. .. ..$ etag             : chr "W/\"aeb3c302f6866c5a0a548eaafa967d61\""
+    ##   .. .. ..$ set-cookie       : chr "__cfduid=dd87ec76270a40e3b11979905fccf7ed71505822854; expires=Wed, 19-Sep-18 12:07:34 GMT; path=/; domain=.swapi.co; HttpOnly"
     ##   .. .. ..$ allow            : chr "GET, HEAD, OPTIONS"
     ##   .. .. ..$ x-frame-options  : chr "SAMEORIGIN"
     ##   .. .. ..$ vary             : chr "Accept, Cookie"
+    ##   .. .. ..$ etag             : chr "W/\"aeb3c302f6866c5a0a548eaafa967d61\""
     ##   .. .. ..$ via              : chr "1.1 vegur"
     ##   .. .. ..$ server           : chr "cloudflare-nginx"
-    ##   .. .. ..$ cf-ray           : chr "3a042c0ee1a88406-KBP"
+    ##   .. .. ..$ cf-ray           : chr "3a0c6ce823e38243-KBP"
     ##   .. .. ..$ content-encoding : chr "gzip"
     ##   .. .. ..- attr(*, "class")= chr [1:2] "insensitive" "list"
     ##  $ cookies    :'data.frame': 1 obs. of  7 variables:
@@ -125,12 +129,12 @@ str(vader)
     ##   ..$ flag      : logi TRUE
     ##   ..$ path      : chr "/"
     ##   ..$ secure    : logi FALSE
-    ##   ..$ expiration: POSIXct[1:1], format: "2018-09-18 15:05:12"
+    ##   ..$ expiration: POSIXct[1:1], format: "2018-09-19 15:07:34"
     ##   ..$ name      : chr "__cfduid"
-    ##   ..$ value     : chr "df4eefe59630e121773fcfe527cef49021505736312"
+    ##   ..$ value     : chr "dd87ec76270a40e3b11979905fccf7ed71505822854"
     ##  $ content    : raw [1:608] 7b 22 63 6f ...
-    ##  $ date       : POSIXct[1:1], format: "2017-09-18 12:05:16"
-    ##  $ times      : Named num [1:6] 0 0.00509 0.03079 0.03098 4.73928 ...
+    ##  $ date       : POSIXct[1:1], format: "2017-09-19 12:07:34"
+    ##  $ times      : Named num [1:6] 0 0.00279 0.00624 0.00636 0.58704 ...
     ##   ..- attr(*, "names")= chr [1:6] "redirect" "namelookup" "connect" "pretransfer" ...
     ##  $ request    :List of 7
     ##   ..$ method    : chr "GET"
@@ -216,7 +220,9 @@ text_content
 
     ## [1] "{\"count\":1,\"next\":null,\"previous\":null,\"results\":[{\"name\":\"Darth Vader\",\"height\":\"202\",\"mass\":\"136\",\"hair_color\":\"none\",\"skin_color\":\"white\",\"eye_color\":\"yellow\",\"birth_year\":\"41.9BBY\",\"gender\":\"male\",\"homeworld\":\"http://swapi.co/api/planets/1/\",\"films\":[\"http://swapi.co/api/films/2/\",\"http://swapi.co/api/films/6/\",\"http://swapi.co/api/films/3/\",\"http://swapi.co/api/films/1/\"],\"species\":[\"http://swapi.co/api/species/1/\"],\"vehicles\":[],\"starships\":[\"http://swapi.co/api/starships/13/\"],\"created\":\"2014-12-10T15:18:20.704000Z\",\"edited\":\"2014-12-20T21:17:50.313000Z\",\"url\":\"http://swapi.co/api/people/4/\"}]}"
 
-Два способи перетворення json файлу
+Два способи перетворення json файлу.
+
+Через інструменти бібліотеки httr:
 
 ``` r
 parsed_content <- content(vader, as = "parsed")
@@ -272,6 +278,8 @@ parsed_content$results[[1]]$terrain
 
     ## NULL
 
+Та через бібліотеку jsonlite:
+
 ``` r
 json_content <- text_content %>% fromJSON
 json_content
@@ -301,8 +309,8 @@ json_content
     ## 1 2014-12-20T21:17:50.313000Z http://swapi.co/api/people/4/
 
 ``` r
-planetary_data <- json_content$results
-names(planetary_data)
+vader_data <- json_content$results
+names(vader_data)
 ```
 
     ##  [1] "name"       "height"     "mass"       "hair_color" "skin_color"
@@ -311,101 +319,109 @@ names(planetary_data)
     ## [16] "url"
 
 ``` r
-planetary_data$name
+vader_data$name
 ```
 
     ## [1] "Darth Vader"
 
 ``` r
-planetary_data$terrain
+vader_data$terrain
 ```
 
     ## NULL
 
+Запишем це все у вигляді функції:
+
 ``` r
 json_parse <- function(req) {
   text <- content(req, as = "text", encoding = "UTF-8")
-  if (identical(text, "")) warn("No output to parse.")
+  if (identical(text, "")) warn("Нема чого парсить")
   fromJSON(text)
 }
 ```
 
-``` r
-planets <- GET("http://swapi.co/api/planets") %>% stop_for_status()
-json_planets <- json_parse(planets)
-```
+### Отримання даних про всі планети
+
+А тепер спробуємо отримати дані про всі планети із Всесвіту Зоряних війн.
+
+Запишем результат наших дій у короткій формі:
 
 ``` r
-names(json_planets)
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status() %>% json_parse()
+```
+
+Подивимось на результати:
+
+``` r
+names(planets)
 ```
 
     ## [1] "count"    "next"     "previous" "results"
 
 ``` r
-json_planets$count
+planets$count
 ```
 
     ## [1] 61
 
 ``` r
-length(json_planets$results$name)
+length(planets$results$name)
 ```
 
     ## [1] 10
 
+**Важливо:** у цього API є обмеження на вивід результатів. За один запит їх можна отримати не більше 10. Планет у Всесвіті Зоряних війн більше 10, отже, нам одного запиту не вистачить.
+
+Якщо дивитися на структуру отриманого списку, то можна побачити, що є гілка з назвою "next":
+
 ``` r
-json_planets$`next`
+planets$`next`
 ```
 
     ## [1] "http://swapi.co/api/planets/?page=2"
 
+Це url наступної сторінки видачі за нашим запитом.
+
+Отримаємо окремий результат по ньому:
+
 ``` r
-swapi_planets <- json_planets$results
-swapi_planets$name
+next_page <- GET(planets$`next`) %>% stop_for_status() %>% json_parse()
 ```
 
-    ##  [1] "Alderaan"  "Yavin IV"  "Hoth"      "Dagobah"   "Bespin"   
-    ##  [6] "Endor"     "Naboo"     "Coruscant" "Kamino"    "Geonosis"
+Маємо ще одну десятку планет:
 
 ``` r
-next_page <- GET(json_planets$`next`) %>% stop_for_status()
-```
-
-``` r
-parsed_next_page <- json_parse(next_page)
-parsed_next_page$results$name
+next_page$results$name
 ```
 
     ##  [1] "Utapau"         "Mustafar"       "Kashyyyk"       "Polis Massa"   
     ##  [5] "Mygeeto"        "Felucia"        "Cato Neimoidia" "Saleucami"     
     ##  [9] "Stewjon"        "Eriadu"
 
-``` r
-planets <- GET("http://swapi.co/api/planets") %>% 
-  stop_for_status() %>% 
-  json_parse
-swapi_planets <- planets$results
-```
+Отримати результат видачі всіх сторінок можна через цикл while
 
 ``` r
+planets <- GET("http://swapi.co/api/planets") %>% stop_for_status() %>% json_parse()
 next_page <- planets$`next`
+planets <- planets$results
+
 while(!is.null(next_page)) {
-  more_planets <- GET(next_page) %>% 
-    stop_for_status() %>% 
-    json_parse
-  swapi_planets <- rbind(swapi_planets, more_planets$results)
+  more_planets <- GET(next_page) %>% stop_for_status() %>% json_parse()
+  planets <- rbind(planets, more_planets$results)
   next_page <- more_planets$`next`
 }
 ```
 
+Всі планети у нас в таблиці:
+
 ``` r
-length(swapi_planets$name)
+length(planets$name)
 ```
 
     ## [1] 61
 
 ``` r
-swapi_planets$name
+planets$name
 ```
 
     ##  [1] "Alderaan"       "Yavin IV"       "Hoth"           "Dagobah"       
@@ -424,3 +440,65 @@ swapi_planets$name
     ## [53] "Zolan"          "Ojom"           "Skako"          "Muunilinst"    
     ## [57] "Shili"          "Kalee"          "Umbara"         "Tatooine"      
     ## [61] "Jakku"
+
+``` r
+head(planets)
+```
+
+    ##       name rotation_period orbital_period diameter             climate
+    ## 1 Alderaan              24            364    12500           temperate
+    ## 2 Yavin IV              24           4818    10200 temperate, tropical
+    ## 3     Hoth              23            549     7200              frozen
+    ## 4  Dagobah              23            341     8900               murky
+    ## 5   Bespin              12           5110   118000           temperate
+    ## 6    Endor              18            402     4900           temperate
+    ##                                  gravity
+    ## 1                             1 standard
+    ## 2                             1 standard
+    ## 3                           1.1 standard
+    ## 4                                    N/A
+    ## 5 1.5 (surface), 1 standard (Cloud City)
+    ## 6                          0.85 standard
+    ##                              terrain surface_water population
+    ## 1              grasslands, mountains            40 2000000000
+    ## 2                jungle, rainforests             8       1000
+    ## 3 tundra, ice caves, mountain ranges           100    unknown
+    ## 4                     swamp, jungles             8    unknown
+    ## 5                          gas giant             0    6000000
+    ## 6          forests, mountains, lakes             8   30000000
+    ##                                                                                       residents
+    ## 1 http://swapi.co/api/people/5/, http://swapi.co/api/people/68/, http://swapi.co/api/people/81/
+    ## 2                                                                                              
+    ## 3                                                                                              
+    ## 4                                                                                              
+    ## 5                                                                http://swapi.co/api/people/26/
+    ## 6                                                                http://swapi.co/api/people/30/
+    ##                                                                                      films
+    ## 1                               http://swapi.co/api/films/6/, http://swapi.co/api/films/1/
+    ## 2                                                             http://swapi.co/api/films/1/
+    ## 3                                                             http://swapi.co/api/films/2/
+    ## 4 http://swapi.co/api/films/2/, http://swapi.co/api/films/6/, http://swapi.co/api/films/3/
+    ## 5                                                             http://swapi.co/api/films/2/
+    ## 6                                                             http://swapi.co/api/films/3/
+    ##                       created                      edited
+    ## 1 2014-12-10T11:35:48.479000Z 2014-12-20T20:58:18.420000Z
+    ## 2 2014-12-10T11:37:19.144000Z 2014-12-20T20:58:18.421000Z
+    ## 3 2014-12-10T11:39:13.934000Z 2014-12-20T20:58:18.423000Z
+    ## 4 2014-12-10T11:42:22.590000Z 2014-12-20T20:58:18.425000Z
+    ## 5 2014-12-10T11:43:55.240000Z 2014-12-20T20:58:18.427000Z
+    ## 6 2014-12-10T11:50:29.349000Z 2014-12-20T20:58:18.429000Z
+    ##                              url
+    ## 1 http://swapi.co/api/planets/2/
+    ## 2 http://swapi.co/api/planets/3/
+    ## 3 http://swapi.co/api/planets/4/
+    ## 4 http://swapi.co/api/planets/5/
+    ## 5 http://swapi.co/api/planets/6/
+    ## 6 http://swapi.co/api/planets/7/
+
+Запишемо це все в таблицю Excel:
+
+``` r
+xlsx::write.xlsx(planets,"planets.xlsx")
+```
+
+Можемо собою гордитись :)
