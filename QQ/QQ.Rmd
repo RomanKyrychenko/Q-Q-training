@@ -1,0 +1,206 @@
+---
+title: "Web Content Mining in R"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(digest)
+library(httr)
+
+knitr::opts_chunk$set(echo = FALSE)
+#knitr::opts_chunk$set(error = TRUE)
+#tutorial_options(exercise.checker = checker)
+#tutorial_options(exercise.checker = checkthat::check_exercise)
+public_key <- "066d7bf25bea689c7f5de80f9cd47c37"
+
+private_key <- "94f28c434337359647c3a0c965b0c945e71a723c"
+
+ts=round(as.numeric(Sys.time())*1000)
+
+hash=digest(sprintf("%s%s%s",ts, private_key, public_key), algo="md5", FALSE)
+```
+
+## Метод GET
+
+### Marvel API
+
+Сьогодні ми попрацюємо з Marvel API. На його прикладі ми розглянемо використання методу GET з авторизацією.
+Дійзнатися, які особливості цього API і що ми можемо з нього отримати, можна за адресою developer.marvel.com.
+
+Найбільше нас цікавить авторизація в цьому API, без неї результат буде сумним (спробуємо отримати досьє на Спайдер-мена):
+```{r httr, exercise=TRUE, exercise.eval=TRUE}
+library(httr)
+
+GET(url = "https://gateway.marvel.com:443/v1/public/characters", 
+    query=list(name="Spider Man"))
+```
+Статус нашого запиту - 409. Цей код позначає три помилки - Missing API Key, Missing Hash, Missing Timestamp. Простіше кажучи, це відсутність параметрів авторизації. Коди, які свідчать про успішне підключення, - 2ХХ.
+
+Про вимоги до авторизації написано тут - https://developer.marvel.com/documentation/authorization.
+
+У першу чергу потрібно зареєструватися на ресурсі і отримати ключі доступу. Ключі записуємо у відповідні змінні:
+
+```{r keys-setup, exercise=T}
+public_key <- "066d7bf25bea689c7f5de80f9cd47c37"
+
+private_key <- "94f28c434337359647c3a0c965b0c945e71a723c"
+```
+
+Тайм-штамп - це конвертований у числовий формат системний час помножений на 1000:
+```{r ts-setup, exercise=F, exercise=TRUE, include=T}
+ts=round(as.numeric(Sys.time())*1000)
+```
+
+Особливістю авторизації Marvel API є комбінація тайм штампу відправлення запиту, публічного і приватного ключів у шифруванні md5. Це не типова вимога, зазвичай API з простою авторизацією вимагають тільки ключі. Цю особливу змінну ми запишемо у hash:
+
+```{r add-function, exercise.lines = 5, exercise=T,  exercise.setup = "keys-setup"}
+library(digest) #для шифрування даних в md5
+
+hash=digest(sprintf("%s%s%s",ts, private_key, public_key), algo="md5", FALSE)
+```
+
+Тепер зробимо авторизований запит:
+```{r sm, exercise=TRUE}
+spider_man <- GET(url = "https://gateway.marvel.com:443/v1/public/characters",
+          query = list(name = "Spider-Man",
+                       ts=ts,
+                       apikey=public_key,
+                       hash=hash)
+)
+spider_man$status_code
+```
+
+Ура! У нас є досьє на спайдер-мена!
+
+Тепер спробуємо спростити процедуру пошуку досьє на героїв. Напишемо функцію:
+```{r func, exercise=TRUE, exercise.eval=TRUE, exercise.lines = 32}
+get_characters <- function(name,public_key="066d7bf25bea689c7f5de80f9cd47c37", private_key="94f28c434337359647c3a0c965b0c945e71a723c") {
+  
+  ts <- round(as.numeric(Sys.time())*1000) 
+  
+  hash <- digest::digest(sprintf("%s%s%s",
+                     ts,
+                     private_key,
+                     public_key), "md5", FALSE)
+  
+  params <- list(
+    ts=ts,
+    hash=hash,
+    apikey=public_key,
+    name=name
+  )
+  
+  res <- httr::GET("https://gateway.marvel.com:443/v1/public/characters",
+                   query=params)
+  
+  httr::stop_for_status(res)
+  
+  httr::content(res, as="parsed")
+  
+}
+
+sm <- get_characters("spider-man")
+listviewer::jsonedit(sm)
+```
+
+Тепер модифікуйте попередню функцію, зробивши можливим виведення через неї всіх героїв за першою буквою назви.
+Виведіть всіх героїв на букву "s".
+
+```{r sw, exercise=T}
+#get_characters <- function(_ _ _,
+#                            public_key="066d7bf25bea689c7f5de80f9cd47c37", 
+#                            private_key="94f28c434337359647c3a0c965b0c945e71a723c") {
+#  
+#  ts <- round(as.numeric(Sys.time())*1000) 
+#  
+#  hash <- digest::digest(sprintf("%s%s%s",
+#                     ts,
+#                     private_key,
+#                     public_key), "md5", FALSE)
+#  
+#  params <- list(
+#    ts = ts,
+#    hash = hash,
+#    apikey = public_key,
+#    _ _ _ = _ _ _
+#  )
+#  
+#  res <- httr::GET("https://gateway.marvel.com:443/v1/public/characters",
+#                   query=params)
+#  
+#  httr::stop_for_status(res)
+#  
+#  httr::content(res, as="parsed")
+#  
+#}
+#
+#s <- get_characters(_ _ _)
+#
+#sapply(1:length(s$data$results),function(x)s$data$results[[x]]$name)
+```
+
+
+<div id="sw-hint">
+Замініть _ _ _ на назву змінної
+</div>
+
+```{r sw-check, echo = FALSE, eval=F}
+get_characters <- function(nameStartsWith,
+                            public_key="066d7bf25bea689c7f5de80f9cd47c37", 
+                            private_key="94f28c434337359647c3a0c965b0c945e71a723c") {
+  
+  ts <- round(as.numeric(Sys.time())*1000) 
+  
+  hash <- digest::digest(sprintf("%s%s%s",
+                     ts,
+                     private_key,
+                     public_key), "md5", FALSE)
+  
+  params <- list(
+    ts = ts,
+    hash = hash,
+    apikey = public_key,
+    nameStartsWith = nameStartsWith
+  )
+  
+  res <- httr::GET("https://gateway.marvel.com:443/v1/public/characters",
+                   query=params)
+  
+  httr::stop_for_status(res)
+  
+  httr::content(res, as="parsed")
+  
+}
+
+s <- get_characters("s")
+
+sapply(1:length(s$data$results),function(x)s$data$results[[x]]$name)
+```
+
+
+```{r quiz}
+#quiz(
+#  question("Скільки героїв на букву 's' в базі?",
+#    answer("17"),
+#    answer("19"),
+#    answer("20", correct = TRUE),
+#    answer("21")
+#  )
+#)
+```
+
+
+
+```{r}
+
+#
+#cm <- bind_rows(do.call("bind_rows",lapply(sm$data[5]$results[[1]]$series$items,as_tibble)),
+#do.call("bind_rows",lapply(sm$data[5]$results[[1]]$comics$items,as_tibble)),
+#do.call("bind_rows",lapply(sm$data[5]$results[[1]]$stories$items,as_tibble)),
+#do.call("bind_rows",lapply(sm$data[5]$results[[1]]$events$items,as_tibble)),.id = "Тип")
+```
